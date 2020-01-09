@@ -3,7 +3,7 @@ const httpRequest = require("request");
 class Manager {
     /**
      * @param {string} apiKey
-     * @param {function} callback
+     * @param {function} [callback]
      */
     constructor(apiKey, callback) {
         this.apiKey = apiKey;
@@ -11,7 +11,7 @@ class Manager {
             if (err) callback(err);
             else {
                 this.userToken = token;
-                callback();
+                if (callback) callback();
             }
         })
     }
