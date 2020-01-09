@@ -1,16 +1,13 @@
 const httpRequest = require("request");
 
 class Manager {
-    userToken;
-    apiKey;
-
     /**
      * @param {string} apiKey
      * @param {function} callback
      */
     constructor(apiKey, callback) {
         this.apiKey = apiKey;
-        this.bpGetUserToken(function(err, token) {
+        this.bpGetUserToken((err, token) => {
             if (err) callback(err);
             else {
                 this.userToken = token;
@@ -30,7 +27,7 @@ class Manager {
      * @param {function} callback
      */
     request(requestOptions, options, callback) {
-        httpRequest(requestOptions, function(err, response, body) {
+        httpRequest(requestOptions, (err, response, body) => {
             if (err) callback(err);
             else if (options.doNotParse) callback(err, body);
             else callback(err, JSON.parse(body));
@@ -51,7 +48,7 @@ class Manager {
                 }
             },
             {},
-            function(err, body) {
+            (err, body) => {
                 if (err) callback(err);
                 else if (body.message) callback(body.message);
                 else callback(err, body.token);
@@ -76,7 +73,7 @@ class Manager {
                 }
             },
             {},
-            function(err, body) {
+            (err, body) => {
                 if (err) callback(err);
                 else if (!parse) callback(err, body);
                 else {
@@ -98,4 +95,14 @@ class Manager {
             }
         )
     }
+
+    /**
+     *
+     * @param {array} listing
+     * @param args
+     */
+    bpCreateListing(listing, ...args) {
+        this.bpCreateListings([listing], ...args);
+    }
 }
+exports.Manager = Manager;

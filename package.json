@@ -1,6 +1,6 @@
 {
   "name": "jstf",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "An API wrapper for some TF2-related sites",
   "main": "index.js",
   "scripts": {
@@ -19,7 +19,7 @@
   "bugs": {
     "url": "https://github.com/mninc/jstf/issues"
   },
-  "homepage": "https://github.com/mninc/jstf#readme",
+  "homepage": "https://github.com/mninc/jstf",
   "dependencies": {
     "request": "^2.88.0"
   }
