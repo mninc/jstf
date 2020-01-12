@@ -11,18 +11,10 @@ httpRequest("https://raw.githubusercontent.com/mninc/tf2-effects/master/effects.
 
 class Manager {
     /**
-     * @param {string} apiKey
+     * @param {string} [apiKey]
      */
     constructor(apiKey) {
-        return new Promise((resolve, reject) => {
-            this.apiKey = apiKey;
-            this.bpGetUserToken()
-                .then(token => {
-                    this.userToken = token;
-                    resolve();
-                })
-                .catch(err => reject(err));
-        })
+        this.apiKey = apiKey;
     }
 
     /**
@@ -38,10 +30,18 @@ class Manager {
         return new Promise((resolve, reject) => {
             httpRequest(requestOptions, (err, response, body) => {
                 if (err) reject(err);
-                else if (options.doNotParse) resolve(body);
+                else if (options.doNotParse || typeof body === "object") resolve(body);
                 else resolve(JSON.parse(body));
             })
         })
+    }
+
+    /**
+     *
+     * @param {string} token
+     */
+    setUserToken(token) {
+        this.userToken = token;
     }
 
     bpGetUserToken() {
@@ -58,7 +58,10 @@ class Manager {
             )
                 .then(body => {
                     if (body.message) reject(Error(body.message));
-                    else resolve(body.token);
+                    else {
+                        this.setUserToken(body.token);
+                        resolve(body.token);
+                    }
                 })
                 .catch(err => reject(err))
         });
@@ -71,6 +74,7 @@ class Manager {
      */
     bpCreateListings(listings, parse = true) {
         return new Promise((resolve, reject) => {
+            if (!this.userToken) reject(Error("user token not set. check the README"));
             this.request({
                     url: "https://backpack.tf/api/classifieds/list/v1",
                     method: "POST",
@@ -108,7 +112,7 @@ class Manager {
 
     /**
      *
-     * @param {array} listing
+     * @param {Object} listing
      * @param {boolean} [parse]
      */
     bpCreateListing(listing, parse = true) {
@@ -170,8 +174,8 @@ class Manager {
      *
      * @param {Number} intent
      * @param {Object} currencies
-     * @param {Number} currencies.keys
-     * @param {Number} currencies.metal
+     * @param {Number} [currencies.keys]
+     * @param {Number} [currencies.metal]
      * @param {String | Object} item
      * @param {Object} options
      * @param {Number} [options.offers]
@@ -179,7 +183,6 @@ class Manager {
      * @param {Number} [options.promoted]
      * @param {String} [options.details]
      */
-
     bpCreateListingData(intent, currencies, item, options) {
         options = util.setDefaults(options, {
             offers: 1,
