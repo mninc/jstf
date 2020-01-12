@@ -1,18 +1,27 @@
 const httpRequest = require("request");
+const itemData = require("./lib/itemData");
+const util = require("./lib/util");
+
+httpRequest("https://raw.githubusercontent.com/mninc/tf2-effects/master/effects.json", function(err, response, body) {
+    if (err) console.error(err);
+    else {
+        itemData.effects = JSON.parse(body);
+    }
+});
 
 class Manager {
     /**
      * @param {string} apiKey
-     * @param {function} [callback]
      */
-    constructor(apiKey, callback) {
-        this.apiKey = apiKey;
-        this.bpGetUserToken((err, token) => {
-            if (err) callback(err);
-            else {
-                this.userToken = token;
-                if (callback) callback();
-            }
+    constructor(apiKey) {
+        return new Promise((resolve, reject) => {
+            this.apiKey = apiKey;
+            this.bpGetUserToken()
+                .then(token => {
+                    this.userToken = token;
+                    resolve();
+                })
+                .catch(err => reject(err));
         })
     }
 
@@ -24,85 +33,170 @@ class Manager {
      * @param {Object} requestOptions.qs
      * @param {Object} options
      * @param {boolean} [options.doNotParse]
-     * @param {function} callback
      */
-    request(requestOptions, options, callback) {
-        httpRequest(requestOptions, (err, response, body) => {
-            if (err) callback(err);
-            else if (options.doNotParse) callback(err, body);
-            else callback(err, JSON.parse(body));
+    request(requestOptions, options) {
+        return new Promise((resolve, reject) => {
+            httpRequest(requestOptions, (err, response, body) => {
+                if (err) reject(err);
+                else if (options.doNotParse) resolve(body);
+                else resolve(JSON.parse(body));
+            })
         })
     }
 
-    /**
-     * @param {function} callback
-     */
-    bpGetUserToken(callback) {
-        if (!this.apiKey) callback("this.apiKey not set");
-        this.request(
-            {
-                url: "https://backpack.tf/api/aux/token/v1",
-                method: "GET",
-                qs: {
-                    key: this.apiKey
-                }
-            },
-            {},
-            (err, body) => {
-                if (err) callback(err);
-                else if (body.message) callback(body.message);
-                else callback(err, body.token);
-            }
-        )
+    bpGetUserToken() {
+        return new Promise((resolve, reject) => {
+            if (!this.apiKey) reject(Error("this.apiKey not set"));
+            this.request({
+                    url: "https://backpack.tf/api/aux/token/v1",
+                    method: "GET",
+                    qs: {
+                        key: this.apiKey
+                    }
+                },
+                {}
+            )
+                .then(body => {
+                    if (body.message) reject(Error(body.message));
+                    else resolve(body.token);
+                })
+                .catch(err => reject(err))
+        });
     }
 
     /**
      *
      * @param {array} listings
-     * @param {boolean} parse
-     * @param {function} callback
+     * @param {boolean} [parse]
      */
-    bpCreateListings(listings, parse, callback) {
-        this.request(
-            {
-                url: "https://backpack.tf/api/classifieds/list/v1",
-                method: "POST",
-                json: {
-                    token: this.userToken,
-                    listings: listings
-                }
-            },
-            {},
-            (err, body) => {
-                if (err) callback(err);
-                else if (!parse) callback(err, body);
-                else {
-                    let response = {
-                        successful: [],
-                        unsuccsessful: {}
-                    };
-
-                    if (!body.listings) return callback(err, response);
-                    for (let item in body.listings) {
-                        if (body.listings.hasOwnProperty(item)) {
-                            let success = body.listings[item];
-                            if (success.created) response.successful.push(item);
-                            else response.unsuccsessful[item] = success.error;
-                        }
+    bpCreateListings(listings, parse = true) {
+        return new Promise((resolve, reject) => {
+            this.request({
+                    url: "https://backpack.tf/api/classifieds/list/v1",
+                    method: "POST",
+                    json: {
+                        token: this.userToken,
+                        listings: listings
                     }
-                    callback(err, response);
-                }
-            }
-        )
+                },
+                {}
+            )
+                .then(body => {
+                    if (!parse) resolve(body);
+                    else {
+                        let response = {
+                            successful: [],
+                            unsuccsessful: {}
+                        };
+
+                        if (!body.listings) return resolve(response);
+                        for (let item in body.listings) {
+                            if (body.listings.hasOwnProperty(item)) {
+                                let success = body.listings[item];
+                                if (success.created) response.successful.push(item);
+                                else response.unsuccsessful[item] = success.error;
+                            }
+                        }
+                        resolve(response);
+                    }
+                })
+                .catch(err => {
+                    reject(err);
+                });
+        });
     }
 
     /**
      *
      * @param {array} listing
-     * @param args
+     * @param {boolean} [parse]
      */
-    bpCreateListing(listing, ...args) {
-        this.bpCreateListings([listing], ...args);
+    bpCreateListing(listing, parse = true) {
+        return this.bpCreateListings([listing], parse);
+    }
+
+    /**
+     *
+     * @param {String} name
+     */
+    nameToItem(name) {
+        let craftable;
+        if (name.startsWith("Non-Craftable ")) {
+            name = name.substring(14);
+            craftable = 0;
+        } else craftable = 1;
+
+        let quality = "Unique";
+        if (
+            !name.startsWith("Haunted Phantasm") && name !== "Strange Bacon Grease" && !name.startsWith("Strange Filter") &&
+            !name.startsWith("Strange Count") && !name.startsWith("Strange Cosmetic") && name !== "Vintage Tyrolean" &&
+            name !== "Vintage Merryweather" && name !== "Haunted Hat" && name !== "Haunted Metal Scrap" &&
+            !name.startsWith("Haunted Ghosts")
+        ) {
+            for (let _quality in itemData.qualities) {
+                if (itemData.qualities.hasOwnProperty(_quality)) {
+                    if (name.startsWith(_quality + " ")) {
+                        quality = _quality;
+                        name = name.substring(quality.length + 1);
+                    }
+                }
+            }
+        }
+
+        let priceindex = 0;
+        if (!name.includes("Hot Heels") && !name.includes("Hot Case") && !name.includes("Hot Hand")) {
+            for (let _effect in itemData.effects) {
+                if (itemData.effects.hasOwnProperty(_effect)) {
+                    if (name.startsWith(_effect) && (_effect !== "Hot" || !(name.includes("Hottie's Hoodie") || name.includes("Hotrod") || name.includes("Hot Dogger")))) {
+                        name = name.substr(_effect.length + 1);
+                        priceindex = itemData.effects[_effect];
+                        if (quality === "Strange") quality = "Strange Unusual";
+                        else quality = "Unusual";
+                    }
+                }
+            }
+        }
+
+        return {
+            quality: quality,
+            item_name: name,
+            craftable: craftable,
+            priceindex: priceindex
+        };
+
+    }
+
+    /**
+     *
+     * @param {Number} intent
+     * @param {Object} currencies
+     * @param {Number} currencies.keys
+     * @param {Number} currencies.metal
+     * @param {String | Object} item
+     * @param {Object} options
+     * @param {Number} [options.offers]
+     * @param {Number} [options.buyout]
+     * @param {Number} [options.promoted]
+     * @param {String} [options.details]
+     */
+
+    bpCreateListingData(intent, currencies, item, options) {
+        options = util.setDefaults(options, {
+            offers: 1,
+            buyout: 1,
+            promoted: 0,
+            details: "",
+            intent: intent,
+            currencies: currencies
+        });
+
+        if (intent) options.id = item;
+        else {
+            if (typeof item === "string") options.item = this.nameToItem(item);
+            else options.item = item;
+        }
+
+        return options;
     }
 }
 exports.Manager = Manager;
