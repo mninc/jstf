@@ -174,13 +174,14 @@ class Manager {
      * @param {Number} [currencies.keys]
      * @param {Number} [currencies.metal]
      * @param {String | Object} item
-     * @param {Object} options
+     * @param {Object} [options]
      * @param {Number} [options.offers]
      * @param {Number} [options.buyout]
      * @param {Number} [options.promoted]
      * @param {String} [options.details]
      */
     bpCreateListingData(intent, currencies, item, options) {
+        if (!options) options = {};
         options = util.setDefaults(options, {
             offers: 1,
             buyout: 1,
