@@ -235,5 +235,22 @@ class Manager {
             })
         });
     }
+
+    bpDeleteListings(listingIds) {
+        return new Promise((resolve, reject) => {
+            this.request(
+                {
+                    url: "https://backpack.tf/api/classifieds/delete/v1",
+                    method: "DELETE",
+                    json: {
+                        token: this.userToken,
+                        listing_ids: listingIds
+                    }
+                }, {}
+            ).then(data => {
+                resolve(data);
+            })
+        });
+    }
 }
 exports.Manager = Manager;
