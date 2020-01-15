@@ -20,9 +20,6 @@ class Manager {
     /**
      *
      * @param {Object} requestOptions
-     * @param {String} requestOptions.url
-     * @param {String} requestOptions.method
-     * @param {Object} requestOptions.qs
      * @param {Object} options
      * @param {boolean} [options.doNotParse]
      */
@@ -200,6 +197,43 @@ class Manager {
         }
 
         return options;
+    }
+
+    /**
+     *
+     * @param {object} [options]
+     * @param {boolean} [options.itemNames]
+     * @param {Number | undefined} [options.intent]
+     * @param {Number} [options.inactive]
+     * @param {boolean} [options.parse]
+     */
+    bpGetMyListings(options) {
+        return new Promise((resolve, reject) => {
+            if (!options) options = {};
+            options = util.setDefaults(options, {
+                itemNames: true,
+                parse: true,
+                inactive: 1,
+            });
+
+            let data = {
+                token: this.userToken,
+                inactive: options.inactive,
+                item_names: options.itemNames,
+                intent: options.intent,
+            };
+
+            this.request(
+                {
+                    url: "https://backpack.tf/api/classifieds/listings/v1",
+                    method: "GET",
+                    json: data,
+                },
+                {},
+            ).then(data => {
+                resolve(data);
+            })
+        });
     }
 }
 exports.Manager = Manager;
