@@ -253,5 +253,24 @@ class Manager {
             })
         });
     }
+
+    bpHeartbeat(automatic="all") {
+        return new Promise((resolve, reject) => {
+            this.request(
+                {
+                    url: "https://backpack.tf/api/aux/heartbeat/v1",
+                    method: "POST",
+                    json: {
+                        token: this.userToken,
+                        automatic: automatic
+                    }
+                },
+                {}
+            ).then(data => {
+                if (data.hasOwnProperty("message")) return reject(data.message);
+                resolve(data.bumped);
+            })
+        })
+    }
 }
 exports.Manager = Manager;
