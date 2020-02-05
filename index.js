@@ -28,7 +28,13 @@ class Manager {
             httpRequest(requestOptions, (err, response, body) => {
                 if (err) reject(err);
                 else if (options.doNotParse || typeof body === "object") resolve(body);
-                else resolve(JSON.parse(body));
+                else {
+                    try {
+                        resolve(JSON.parse(body));
+                    } catch (e) {
+                        reject(body);
+                    }
+                }
             })
         })
     }
@@ -101,9 +107,7 @@ class Manager {
                         resolve(response);
                     }
                 })
-                .catch(err => {
-                    reject(err);
-                });
+                .catch(err => reject(err));
         });
     }
 
@@ -231,9 +235,11 @@ class Manager {
                     json: data,
                 },
                 {},
-            ).then(data => {
-                resolve(data);
-            })
+            )
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(err => reject(err))
         });
     }
 
@@ -248,9 +254,9 @@ class Manager {
                         listing_ids: listingIds
                     }
                 }, {}
-            ).then(data => {
-                resolve(data);
-            })
+            )
+                .then(data =>  resolve(data))
+                .catch(err => reject(err));
         });
     }
 
@@ -266,10 +272,12 @@ class Manager {
                     }
                 },
                 {}
-            ).then(data => {
-                if (data.hasOwnProperty("message")) return reject(data.message);
-                resolve(data.bumped);
-            })
+            )
+                .then(data => {
+                    if (data.hasOwnProperty("message")) return reject(data.message);
+                    resolve(data.bumped);
+                })
+                .catch(err => reject(err))
         })
     }
 }
