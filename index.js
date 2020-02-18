@@ -4,6 +4,7 @@ const cheerio = require("cheerio");
 const itemData = require("./lib/itemData");
 const util = require("./lib/util");
 const Inventory = require("./lib/classes/Inventory");
+const User = require("./lib/classes/User");
 
 httpRequest("https://raw.githubusercontent.com/mninc/tf2-effects/master/effects.json", function(err, response, body) {
     if (err) console.error(err);
@@ -332,6 +333,10 @@ class Manager {
         })
     }
 
+    /**
+     *
+     * @param {String} id
+     */
     checkDupe(id) {
         return new Promise((resolve, reject) => {
             this.request({
@@ -342,6 +347,27 @@ class Manager {
                     let $ = cheerio.load(data);
                     let dupeTag = $('#dupe-modal-btn');
                     resolve(!!dupeTag.length); // check if dupe tag exists
+                })
+                .catch(err => reject(err))
+        })
+    }
+
+    /**
+     *
+     * @param {String} steamid
+     */
+    bpGetUserInfo(steamid) {
+        return new Promise((resolve, reject) => {
+            this.request({
+                url: "https://backpack.tf/api/users/info/v1",
+                method: "GET",
+                qs: {
+                    key: this.apiKey,
+                    steamids: steamid
+                }
+            })
+                .then(data => {
+                    resolve(new User(data.users[steamid]));
                 })
                 .catch(err => reject(err))
         })
