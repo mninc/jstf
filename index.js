@@ -3,6 +3,7 @@ const cheerio = require("cheerio");
 
 const itemData = require("./lib/itemData");
 const util = require("./lib/util");
+const parseItem = require("./lib/parseItem");
 const Inventory = require("./lib/classes/Inventory");
 const User = require("./lib/classes/User");
 
@@ -373,4 +374,8 @@ class Manager {
         })
     }
 }
-exports.Manager = Manager;
+
+module.exports = {
+    Manager,
+    parseItem,
+};
