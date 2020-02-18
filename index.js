@@ -1,4 +1,5 @@
 const httpRequest = require("request");
+const cheerio = require("cheerio");
 
 const itemData = require("./lib/itemData");
 const util = require("./lib/util");
@@ -22,10 +23,11 @@ class Manager {
     /**
      *
      * @param {Object} requestOptions
-     * @param {Object} options
+     * @param {Object} [options]
      * @param {boolean} [options.doNotParse]
      */
     request(requestOptions, options) {
+        if (!options) options = {};
         return new Promise((resolve, reject) => {
             httpRequest(requestOptions, (err, response, body) => {
                 if (err) reject(err);
@@ -58,8 +60,7 @@ class Manager {
                     qs: {
                         key: this.apiKey
                     }
-                },
-                {}
+                }
             )
                 .then(body => {
                     if (body.message) reject(Error(body.message));
@@ -87,8 +88,7 @@ class Manager {
                         token: this.userToken,
                         listings: listings
                     }
-                },
-                {}
+                }
             )
                 .then(body => {
                     if (!parse) resolve(body);
@@ -235,8 +235,7 @@ class Manager {
                     url: "https://backpack.tf/api/classifieds/listings/v1",
                     method: "GET",
                     json: data,
-                },
-                {},
+                }
             )
                 .then(data => {
                     resolve(data);
@@ -259,7 +258,7 @@ class Manager {
                         token: this.userToken,
                         listing_ids: listingIds
                     }
-                }, {}
+                }
             )
                 .then(data =>  resolve(data))
                 .catch(err => reject(err));
@@ -288,8 +287,7 @@ class Manager {
                         token: this.userToken,
                         automatic: automatic
                     }
-                },
-                {}
+                }
             )
                 .then(data => {
                     if (data.hasOwnProperty("message")) return reject(data.message);
@@ -325,11 +323,25 @@ class Manager {
                 {
                     url: url,
                     method: "GET"
-                },
-                {}
+                }
             )
                 .then(data => {
                     resolve(new Inventory(data));
+                })
+                .catch(err => reject(err))
+        })
+    }
+
+    checkDupe(id) {
+        return new Promise((resolve, reject) => {
+            this.request({
+                url: `https://backpack.tf/item/${id}`,
+                method: "GET"
+            })
+                .then(data => {
+                    let $ = cheerio.load(data);
+                    let dupeTag = $('#dupe-modal-btn');
+                    resolve(!!dupeTag.length); // check if dupe tag exists
                 })
                 .catch(err => reject(err))
         })
