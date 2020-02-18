@@ -1,6 +1,8 @@
 const httpRequest = require("request");
+
 const itemData = require("./lib/itemData");
 const util = require("./lib/util");
+const Inventory = require("./lib/classes/Inventory");
 
 httpRequest("https://raw.githubusercontent.com/mninc/tf2-effects/master/effects.json", function(err, response, body) {
     if (err) console.error(err);
@@ -243,6 +245,10 @@ class Manager {
         });
     }
 
+    /**
+     *
+     * @param {Array} listingIds
+     */
     bpDeleteListings(listingIds) {
         return new Promise((resolve, reject) => {
             this.request(
@@ -260,6 +266,18 @@ class Manager {
         });
     }
 
+    /**
+     *
+     * @param {String} listingId
+     */
+    bpDeleteListing(listingId) {
+        return this.bpDeleteListings([listingId]);
+    }
+
+    /**
+     *
+     * @param {String} [automatic]
+     */
     bpHeartbeat(automatic="all") {
         return new Promise((resolve, reject) => {
             this.request(
@@ -276,6 +294,42 @@ class Manager {
                 .then(data => {
                     if (data.hasOwnProperty("message")) return reject(data.message);
                     resolve(data.bumped);
+                })
+                .catch(err => reject(err))
+        })
+    }
+
+    /**
+     *
+     * @param {Object} options
+     * @param {String} options.steamid
+     * @param {Number} [options.game]
+     * @param {Number} [options.context]
+     * @param {String} [options.language]
+     * @param {Number} [options.count]
+     * @param {String} [options.start_assetid]
+     */
+    steamLoadInventory(options) {
+        options = util.setDefaults(options, {
+            game: 440,
+            context: 2,
+            language: "english",
+            count: 5000,
+        });
+
+        return new Promise((resolve, reject) => {
+            let url = `http://steamcommunity.com/inventory/${options.steamid}/${options.game}/${options.context}?l=${options.language}&count=${options.count}`;
+            if (options.start_assetid) url += `&start_assetid=${options.start_assetid}`;
+
+            this.request(
+                {
+                    url: url,
+                    method: "GET"
+                },
+                {}
+            )
+                .then(data => {
+                    resolve(new Inventory(data));
                 })
                 .catch(err => reject(err))
         })
