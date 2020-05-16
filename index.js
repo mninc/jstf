@@ -1,4 +1,3 @@
-const httpRequest = require("request");
 const cheerio = require("cheerio");
 
 const itemData = require("./lib/itemData");
@@ -7,19 +6,23 @@ const parseItem = require("./lib/parseItem");
 const Inventory = require("./lib/classes/Inventory");
 const User = require("./lib/classes/User");
 
-httpRequest("https://raw.githubusercontent.com/mninc/tf2-effects/master/effects.json", function(err, response, body) {
-    if (err) console.error(err);
-    else {
-        itemData.effects = JSON.parse(body);
-    }
-});
-
 class Manager {
     /**
-     * @param {string} [apiKey]
+     * @param {Object} [options]
+     * @param {String} [options.apiKey]
+     * @param {function} [options.request]
      */
-    constructor(apiKey) {
-        this.apiKey = apiKey;
+    constructor(options) {
+        if (typeof options === "string") options = { apiKey: options };
+        this.apiKey = options.apiKey;
+        this.request = options.request ? options.request : require('request');
+
+        this.request("https://raw.githubusercontent.com/mninc/tf2-effects/master/effects.json", function(err, response, body) {
+            if (err) console.error(err);
+            else {
+                itemData.effects = JSON.parse(body);
+            }
+        });
     }
 
     /**
@@ -28,10 +31,10 @@ class Manager {
      * @param {Object} [options]
      * @param {boolean} [options.doNotParse]
      */
-    request(requestOptions, options) {
+    query(requestOptions, options) {
         if (!options) options = {};
         return new Promise((resolve, reject) => {
-            httpRequest(requestOptions, (err, response, body) => {
+            this.request(requestOptions, (err, response, body) => {
                 if (err) reject(err);
                 else if (options.doNotParse || typeof body === "object") resolve(body);
                 else {
@@ -56,7 +59,7 @@ class Manager {
     bpGetUserToken() {
         return new Promise((resolve, reject) => {
             if (!this.apiKey) reject(Error("this.apiKey not set"));
-            this.request({
+            this.query({
                     url: "https://backpack.tf/api/aux/token/v1",
                     method: "GET",
                     qs: {
@@ -83,7 +86,7 @@ class Manager {
     bpCreateListings(listings, parse = true) {
         return new Promise((resolve, reject) => {
             if (!this.userToken) reject(Error("user token not set. check the README"));
-            this.request({
+            this.query({
                     url: "https://backpack.tf/api/classifieds/list/v1",
                     method: "POST",
                     json: {
@@ -232,7 +235,7 @@ class Manager {
                 intent: options.intent,
             };
 
-            this.request(
+            this.query(
                 {
                     url: "https://backpack.tf/api/classifieds/listings/v1",
                     method: "GET",
@@ -252,7 +255,7 @@ class Manager {
      */
     bpDeleteListings(listingIds) {
         return new Promise((resolve, reject) => {
-            this.request(
+            this.query(
                 {
                     url: "https://backpack.tf/api/classifieds/delete/v1",
                     method: "DELETE",
@@ -281,7 +284,7 @@ class Manager {
      */
     bpHeartbeat(automatic="all") {
         return new Promise((resolve, reject) => {
-            this.request(
+            this.query(
                 {
                     url: "https://backpack.tf/api/aux/heartbeat/v1",
                     method: "POST",
@@ -321,7 +324,7 @@ class Manager {
             let url = `http://steamcommunity.com/inventory/${options.steamid}/${options.game}/${options.context}?l=${options.language}&count=${options.count}`;
             if (options.start_assetid) url += `&start_assetid=${options.start_assetid}`;
 
-            this.request(
+            this.query(
                 {
                     url: url,
                     method: "GET"
@@ -340,7 +343,7 @@ class Manager {
      */
     checkDupe(id) {
         return new Promise((resolve, reject) => {
-            this.request({
+            this.query({
                 url: `https://backpack.tf/item/${id}`,
                 method: "GET"
             })
@@ -359,7 +362,7 @@ class Manager {
      */
     bpGetUserInfo(steamid) {
         return new Promise((resolve, reject) => {
-            this.request({
+            this.query({
                 url: "https://backpack.tf/api/users/info/v1",
                 method: "GET",
                 qs: {
