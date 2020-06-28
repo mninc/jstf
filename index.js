@@ -404,4 +404,5 @@ class Manager {
 module.exports = {
     Manager,
     parseItem,
+    itemData,
 };
