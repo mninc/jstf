@@ -376,6 +376,29 @@ class Manager {
                 .catch(err => reject(err))
         })
     }
+
+    /**
+     *
+     * @param {Number} raw
+     * @param {Number} since
+     */
+    bpGetPrices(raw = 1, since = 0) {
+        return new Promise((resolve, reject) => {
+            this.query({
+                url: "https://backpack.tf/api/IGetPrices/v4",
+                method: "GET",
+                qs: {
+                    key: this.apiKey,
+                    raw: raw,
+                    since: since
+                }
+            })
+                .then(data => {
+                    resolve(data);
+                })
+                .catch(err => reject(err))
+        })
+    }
 }
 
 module.exports = {
