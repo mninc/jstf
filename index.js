@@ -346,6 +346,8 @@ class Manager {
             this.query({
                 url: `https://backpack.tf/item/${id}`,
                 method: "GET"
+            }, {
+                doNotParse: true
             })
                 .then(data => {
                     let $ = cheerio.load(data);
