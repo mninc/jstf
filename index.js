@@ -351,8 +351,8 @@ class Manager {
             })
                 .then(data => {
                     let $ = cheerio.load(data);
-                    let dupeTag = $('#dupe-modal-btn');
-                    resolve(!!dupeTag.length); // check if dupe tag exists
+                    if (!$('.item').length) return reject(Error("backpack.tf: Could not find any information for this item."));
+                    resolve($('#dupe-modal-btn').length); // check if dupe tag exists
                 })
                 .catch(err => reject(err))
         })
