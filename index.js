@@ -15,7 +15,7 @@ class Manager {
     constructor(options) {
         if (typeof options === "string") options = { apiKey: options };
         this.apiKey = options.apiKey;
-        this.request = options.request ? options.request : require('request');
+        this.request = options.request || require('request');
 
         this.request("https://raw.githubusercontent.com/mninc/tf2-effects/master/effects.json", function(err, response, body) {
             if (err) console.error(err);
