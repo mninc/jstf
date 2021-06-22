@@ -1,6 +1,6 @@
 {
   "name": "jstf",
-  "version": "0.10.1",
+  "version": "0.11.0",
   "description": "An API wrapper for some TF2-related sites",
   "main": "index.js",
   "scripts": {

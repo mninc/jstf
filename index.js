@@ -58,7 +58,7 @@ class Manager {
 
     bpGetUserToken() {
         return new Promise((resolve, reject) => {
-            if (!this.apiKey) reject(Error("this.apiKey not set"));
+            if (!this.apiKey) return reject(Error("this.apiKey not set"));
             this.query({
                     url: "https://backpack.tf/api/aux/token/v1",
                     method: "GET",
@@ -85,7 +85,7 @@ class Manager {
      */
     bpCreateListings(listings, parse = true) {
         return new Promise((resolve, reject) => {
-            if (!this.userToken) reject(Error("user token not set. check the README"));
+            if (!this.userToken) return reject(Error("user token not set. check the README"));
             this.query({
                     url: "https://backpack.tf/api/classifieds/list/v1",
                     method: "POST",
@@ -399,6 +399,83 @@ class Manager {
                     resolve(data);
                 })
                 .catch(err => reject(err))
+        })
+    }
+
+    async bpGetAlerts(skip = 0, limit = 0) {
+        if (!this.userToken) throw new Error("user token not set. check the README");
+        if (limit) {
+            console.log("req", skip, limit);
+            return await this.query({
+                url: "https://backpack.tf/api/classifieds/alerts",
+                method: "GET",
+                qs: {
+                    token: this.userToken,
+                    skip,
+                    limit
+                }
+            });
+        } else {
+            const defaultLimit = 500;
+            let data = await this.bpGetAlerts(0, defaultLimit);
+            let total = data.cursor.total;
+            let skip = defaultLimit;
+            while (skip < total) {
+                let newData = await this.bpGetAlerts(skip, defaultLimit);
+                skip += defaultLimit;
+                total = newData.cursor.total;
+                data.results = data.results.concat(newData.results);
+            }
+            return data;
+        }
+    }
+
+    async bpDeleteAlert(item_name, intent) {
+        if (typeof intent === "number") {
+            intent = intent === 0 ? "buy" : "sell";
+        }
+        return await this.query({
+            url: "https://backpack.tf/api/classifieds/alerts",
+            method: "DELETE",
+            json: {
+                token: this.userToken,
+                item_name,
+                intent
+            }
+        }, {
+            doNotParse: true
+        });
+    }
+
+    /**
+     *
+     * @param {Object} options
+     * @param {String} options.item_name
+     * @param {Number | String} options.intent
+     * @param {String} [options.currency]
+     * @param {Number} [options.min]
+     * @param {Number} [options.max]
+     * @param {Number} [options.blanket]
+     */
+    async bpCreateAlert(options) {
+        if (typeof options.intent === "number") {
+            options.intent = options.intent === 0 ? "buy" : "sell";
+        }
+        options.token = this.userToken;
+        return await this.query({
+            url: "https://backpack.tf/api/classifieds/alerts",
+            method: "POST",
+            json: options
+        })
+    }
+
+    async bpGetUnreadNotifications() {
+        return await this.query({
+            url: "https://backpack.tf/api/notifications/unread",
+            method: "POST",
+            json: {
+                token: this.userToken
+            }
         })
     }
 }
