@@ -405,7 +405,6 @@ class Manager {
     async bpGetAlerts(skip = 0, limit = 0) {
         if (!this.userToken) throw new Error("user token not set. check the README");
         if (limit) {
-            console.log("req", skip, limit);
             return await this.query({
                 url: "https://backpack.tf/api/classifieds/alerts",
                 method: "GET",
