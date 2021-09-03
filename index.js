@@ -280,6 +280,28 @@ class Manager {
 
     /**
      *
+     * @param {Boolean} archive
+     * @param {String} intent
+     */
+    async bpDeleteAllListings(archive, intent) {
+        archive = !!archive;
+        if (!["sell", "buy"].includes(intent)) intent = null;
+
+        const json = {
+            token: this.userToken,
+        };
+        if (intent) json.intent = intent;
+        return this.query(
+            {
+                url: `https://backpack.tf/api/v2/classifieds/${archive ? "archive" : "listings"}`,
+                method: "DELETE",
+                json,
+            }
+        )
+    }
+
+    /**
+     *
      * @param {String} [automatic]
      */
     bpHeartbeat(automatic="all") {
