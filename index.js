@@ -400,6 +400,31 @@ class Manager {
                 .catch(err => reject(err))
         })
     }
+    
+
+    /**
+     *
+     * @param {String[]} steamids
+     */
+     bpGetMultipleUserInfo(steamids) {
+        return new Promise((resolve, reject) => {
+            this.query({
+                url: "https://backpack.tf/api/users/info/v1",
+                method: "GET",
+                qs: {
+                    key: this.apiKey,
+                    steamids
+                }
+            })
+                .then(data => {
+                    Object.keys(data.users).forEach(steamid => {
+                        data.users[steamid] = new User(data.users[steamid]);
+                    });
+                    resolve(data.users);
+                })
+                .catch(err => reject(err))
+        })
+    }
 
     /**
      *
