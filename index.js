@@ -382,31 +382,9 @@ class Manager {
 
     /**
      *
-     * @param {String} steamid
+     * @param {String|String[]} steamids
      */
-    bpGetUserInfo(steamid) {
-        return new Promise((resolve, reject) => {
-            this.query({
-                url: "https://backpack.tf/api/users/info/v1",
-                method: "GET",
-                qs: {
-                    key: this.apiKey,
-                    steamids: steamid
-                }
-            })
-                .then(data => {
-                    resolve(new User(data.users[steamid]));
-                })
-                .catch(err => reject(err))
-        })
-    }
-    
-
-    /**
-     *
-     * @param {String[]} steamids
-     */
-     bpGetMultipleUserInfo(steamids) {
+    bpGetUserInfo(steamids) {
         return new Promise((resolve, reject) => {
             this.query({
                 url: "https://backpack.tf/api/users/info/v1",
@@ -417,10 +395,14 @@ class Manager {
                 }
             })
                 .then(data => {
-                    Object.keys(data.users).forEach(steamid => {
-                        data.users[steamid] = new User(data.users[steamid]);
-                    });
-                    resolve(data.users);
+                    if (Array.isArray(steamids)) {
+                        Object.keys(data.users).forEach(steamid => {
+                            data.users[steamid] = new User(data.users[steamid]);
+                        });
+                        resolve(data.users);
+                    } else {
+                        resolve(new User(data.users[steamids]));
+                    }
                 })
                 .catch(err => reject(err))
         })
