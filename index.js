@@ -382,20 +382,27 @@ class Manager {
 
     /**
      *
-     * @param {String} steamid
+     * @param {String|String[]} steamids
      */
-    bpGetUserInfo(steamid) {
+    bpGetUserInfo(steamids) {
         return new Promise((resolve, reject) => {
             this.query({
                 url: "https://backpack.tf/api/users/info/v1",
                 method: "GET",
                 qs: {
                     key: this.apiKey,
-                    steamids: steamid
+                    steamids
                 }
             })
                 .then(data => {
-                    resolve(new User(data.users[steamid]));
+                    if (Array.isArray(steamids)) {
+                        Object.keys(data.users).forEach(steamid => {
+                            data.users[steamid] = new User(data.users[steamid]);
+                        });
+                        resolve(data.users);
+                    } else {
+                        resolve(new User(data.users[steamids]));
+                    }
                 })
                 .catch(err => reject(err))
         })
