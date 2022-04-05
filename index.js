@@ -280,8 +280,8 @@ class Manager {
 
     /**
      *
-     * @param {Boolean} archive
-     * @param {String} intent
+     * @param {Boolean} [archive]
+     * @param {String} [intent]
      */
     async bpDeleteAllListings(archive, intent) {
         archive = !!archive;
