@@ -391,7 +391,7 @@ class Manager {
                 method: "GET",
                 qs: {
                     key: this.apiKey,
-                    steamids
+                    steamids: Array.isArray(steamids) ? steamids.join(',') : steamids
                 }
             })
                 .then(data => {
