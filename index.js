@@ -366,7 +366,7 @@ class Manager {
     checkDupe(id) {
         return new Promise((resolve, reject) => {
             this.query({
-                url: `https://api.backpack.tf/item/${id}`,
+                url: `https://old.backpack.tf/item/${id}`,
                 method: "GET"
             }, {
                 doNotParse: true
