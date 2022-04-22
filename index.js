@@ -60,7 +60,7 @@ class Manager {
         return new Promise((resolve, reject) => {
             if (!this.apiKey) return reject(Error("this.apiKey not set"));
             this.query({
-                    url: "https://backpack.tf/api/aux/token/v1",
+                    url: "https://api.backpack.tf/api/aux/token/v1",
                     method: "GET",
                     qs: {
                         key: this.apiKey
@@ -87,7 +87,7 @@ class Manager {
         return new Promise((resolve, reject) => {
             if (!this.userToken) return reject(Error("user token not set. check the README"));
             this.query({
-                    url: "https://backpack.tf/api/classifieds/list/v1",
+                    url: "https://api.backpack.tf/api/classifieds/list/v1",
                     method: "POST",
                     json: {
                         token: this.userToken,
@@ -237,7 +237,7 @@ class Manager {
 
             this.query(
                 {
-                    url: "https://backpack.tf/api/classifieds/listings/v1",
+                    url: "https://api.backpack.tf/api/classifieds/listings/v1",
                     method: "GET",
                     json: data,
                 }
@@ -257,7 +257,7 @@ class Manager {
         return new Promise((resolve, reject) => {
             this.query(
                 {
-                    url: "https://backpack.tf/api/classifieds/delete/v1",
+                    url: "https://api.backpack.tf/api/classifieds/delete/v1",
                     method: "DELETE",
                     json: {
                         token: this.userToken,
@@ -293,7 +293,7 @@ class Manager {
         if (intent) json.intent = intent;
         return this.query(
             {
-                url: `https://backpack.tf/api/v2/classifieds/${archive ? "archive" : "listings"}`,
+                url: `https://api.backpack.tf/api/v2/classifieds/${archive ? "archive" : "listings"}`,
                 method: "DELETE",
                 json,
             }
@@ -308,7 +308,7 @@ class Manager {
         return new Promise((resolve, reject) => {
             this.query(
                 {
-                    url: "https://backpack.tf/api/aux/heartbeat/v1",
+                    url: "https://api.backpack.tf/api/aux/heartbeat/v1",
                     method: "POST",
                     json: {
                         token: this.userToken,
@@ -366,7 +366,7 @@ class Manager {
     checkDupe(id) {
         return new Promise((resolve, reject) => {
             this.query({
-                url: `https://backpack.tf/item/${id}`,
+                url: `https://api.backpack.tf/item/${id}`,
                 method: "GET"
             }, {
                 doNotParse: true
@@ -387,7 +387,7 @@ class Manager {
     bpGetUserInfo(steamids) {
         return new Promise((resolve, reject) => {
             this.query({
-                url: "https://backpack.tf/api/users/info/v1",
+                url: "https://api.backpack.tf/api/users/info/v1",
                 method: "GET",
                 qs: {
                     key: this.apiKey,
@@ -416,7 +416,7 @@ class Manager {
     bpGetPrices(raw = 1, since = 0) {
         return new Promise((resolve, reject) => {
             this.query({
-                url: "https://backpack.tf/api/IGetPrices/v4",
+                url: "https://api.backpack.tf/api/IGetPrices/v4",
                 method: "GET",
                 qs: {
                     key: this.apiKey,
@@ -435,7 +435,7 @@ class Manager {
         if (!this.userToken) throw new Error("user token not set. check the README");
         if (limit) {
             return await this.query({
-                url: "https://backpack.tf/api/classifieds/alerts",
+                url: "https://api.backpack.tf/api/classifieds/alerts",
                 method: "GET",
                 qs: {
                     token: this.userToken,
@@ -463,7 +463,7 @@ class Manager {
             intent = intent === 0 ? "buy" : "sell";
         }
         return await this.query({
-            url: "https://backpack.tf/api/classifieds/alerts",
+            url: "https://api.backpack.tf/api/classifieds/alerts",
             method: "DELETE",
             json: {
                 token: this.userToken,
@@ -491,7 +491,7 @@ class Manager {
         }
         options.token = this.userToken;
         return await this.query({
-            url: "https://backpack.tf/api/classifieds/alerts",
+            url: "https://api.backpack.tf/api/classifieds/alerts",
             method: "POST",
             json: options
         })
@@ -499,7 +499,7 @@ class Manager {
 
     async bpGetUnreadNotifications() {
         return await this.query({
-            url: "https://backpack.tf/api/notifications/unread",
+            url: "https://api.backpack.tf/api/notifications/unread",
             method: "POST",
             json: {
                 token: this.userToken
