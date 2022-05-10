@@ -164,6 +164,7 @@ class Manager {
                         priceindex = itemData.effects[_effect];
                         if (quality === "Strange") quality = "Strange Unusual";
                         else quality = "Unusual";
+                        break;
                     }
                 }
             }
